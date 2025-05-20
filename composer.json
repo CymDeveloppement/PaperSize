@@ -2,7 +2,7 @@
     "name": "ycdev/paper-size",
     "description": "Paper Size constant and convert to inch/pixe",
     "type": "library",
-    "license": "GPL V3",
+    "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
             "Ycdev\\PaperSize\\": "src/"
