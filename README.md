@@ -163,4 +163,4 @@ $dimensions = PaperSize::px(PaperSize::A4, 600);
 
 ## License
 
-MIT
+GPL V3
