@@ -93,7 +93,7 @@ class PaperSize
                 $format = [$format[0] * 0.0393701, $format[1] * 0.0393701];
                 break;
         }
-        return $format;
+        return [((float)intval($format[0]*100)/100), ((float)intval($format[1]*100)/100)];
     }
 
     /**
@@ -149,7 +149,7 @@ class PaperSize
      */
     public static function landscape(array $format): array
     {
-        return [$array[1], $array[0]];
+        return [$format[1], $format[0]];
     }
 
     /**

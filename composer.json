@@ -5,7 +5,8 @@
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
-            "Ycdev\\PaperSize\\": "src/"
+            "Ycdev\\PaperSize\\": "src/",
+            "Tests\\": "tests/"
         }
     },
     "authors": [
@@ -15,5 +16,8 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {}
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    }
 }
