@@ -2,7 +2,10 @@
 namespace Ycdev;
 
 /**
+ * PaperSize Class
  *
+ * This class manages paper formats by providing methods to convert formats between different units,
+ * get information about paper formats, and create GD images with specified formats.
  */
 class PaperSize
 {
@@ -57,11 +60,25 @@ class PaperSize
     const US_LETTER            = [127, 203];
 
     // unit
+    /**
+     * Returns the list of supported units.
+     *
+     * @return array The list of supported units.
+     */
     public static function unit(): array
     {
         return ['px', 'mm', 'cm', 'm', 'in'];
     }
 
+    /**
+     * Converts a paper format to the specified unit.
+     *
+     * @param array $format The paper format to convert.
+     * @param string $unit The unit to convert to.
+     * @param int $resolution The resolution for pixel conversion.
+     * @param string $orientation The orientation of the format.
+     * @return array The converted paper format.
+     */
     public static function convert(array $format, string $unit = 'px', int $resolution = 300, string $orientation = 'P'): array
     {
         switch ($unit) {
@@ -79,31 +96,67 @@ class PaperSize
         return $format;
     }
 
+    /**
+     * Converts a paper format to pixels.
+     *
+     * @param array $format The paper format to convert.
+     * @param int $resolution The resolution for pixel conversion.
+     * @return array The converted paper format in pixels.
+     */
     public static function px(array $format, int $resolution = 300): array
     {
         return self::convert($format, 'px', $resolution);
     }
 
+    /**
+     * Converts a paper format to centimeters.
+     *
+     * @param array $format The paper format to convert.
+     * @return array The converted paper format in centimeters.
+     */
     public static function cm(array $format): array
     {
         return self::convert($format, 'cm');
     }
 
+    /**
+     * Converts a paper format to inches.
+     *
+     * @param array $format The paper format to convert.
+     * @return array The converted paper format in inches.
+     */
     public static function in(array $format): array
     {
         return self::convert($format, 'in');
     }
 
+    /**
+     * Calculates the aspect ratio of a paper format.
+     *
+     * @param array $format The paper format.
+     * @return float The aspect ratio of the paper format.
+     */
     public static function ratio(array $format): float
     {
         return ($format[1] / $format[0]);
     }
 
+    /**
+     * Converts a paper format to landscape orientation.
+     *
+     * @param array $format The paper format to convert.
+     * @return array The converted paper format in landscape orientation.
+     */
     public static function landscape(array $format): array
     {
         return [$array[1], $array[0]];
     }
 
+    /**
+     * Returns all supported paper formats.
+     *
+     * @return array The list of all supported paper formats.
+     */
     public static function allFormats(): array
     {
         $class = new \ReflectionClass(__CLASS__);
@@ -128,9 +181,16 @@ class PaperSize
         return $formats;
     }
 
+    /**
+     * Creates a GD image with the specified paper format.
+     *
+     * @param array $format The paper format.
+     * @return \GdImage|false The created GD image or false on failure.
+     */
     public static function gdImage(array $format): \GdImage  | false
     {
+        $format = self::px($format);
         return imagecreate($format[0], $format[1]);
     }
 
-}
+} 
