@@ -6,6 +6,9 @@ namespace Ycdev;
  *
  * This class manages paper formats by providing methods to convert formats between different units,
  * get information about paper formats, and create GD images with specified formats.
+ * Paper size source :
+ * - ISO / US / JP / FR : https://fr.wikipedia.org/wiki/Format_de_papier / https://papersizes.io/
+ *
  */
 class PaperSize
 {
@@ -48,7 +51,29 @@ class PaperSize
     const C10 = [28, 40];
 
     // FRENCH AFNOR FORMAT (mm)
-    const FR_CLOCHE = [300, 400];
+    const FR_CLOCHE               = [300, 400];
+    const FR_POT                  = [310, 400];
+    const FR_TELLIERE             = [340, 440];
+    const FR_COURONNE_ECRITURE    = [360, 460];
+    const FR_COURONNE_EDITION     = [370, 470];
+    const FR_ROBERTO              = [390, 500];
+    const FR_ECU                  = [400, 520];
+    const FR_COQUILLE             = [440, 560];
+    const FR_CARRE                = [450, 560];
+    const FR_CAVALIER             = [460, 620];
+    const FR_QUART_RAISIN         = [250, 325];
+    const FR_DEMI_RAISIN          = [325, 500];
+    const FR_RAISIN               = [500, 650];
+    const FR_DOUBLE_RAISIN        = [650, 1000];
+    const FR_GRAPPE_DE_RAISIN     = [4000, 2600];
+    const FR_JESUS                = [560, 760];
+    const FR_SOLEIL               = [600, 800];
+    const FR_COLOMBIER_AFFICHE    = [600, 800];
+    const FR_COLOMBIER_COMMERCIAL = [630, 900];
+    const FR_PETIT_AIGLE          = [700, 940];
+    const FR_GRAND_AIGLE          = [750, 1060];
+    const FR_GRAND_MONDE          = [900, 1260];
+    const FR_UNIVERS              = [1000, 1300];
 
     // US FORMAT
     const US_JUNIOR_LEGAL      = [127, 203];
@@ -58,6 +83,33 @@ class PaperSize
     const US_EXECUTIVE         = [127, 203];
     const US_GOVERNMENT_LETTER = [127, 203];
     const US_LETTER            = [127, 203];
+
+    //ISO/CEI 7810
+    const ID_000 = [15, 25];
+    const ID_1   = [54, 85];
+    const ID_2   = [74, 105];
+    const ID_3   = [88, 125];
+
+    //JAPAN Format JIS P 0138
+
+    const JP_JB0           = [1030, 1456];
+    const JP_JB1           = [728, 1030];
+    const JP_JB2           = [515, 728];
+    const JP_JB3           = [728, 1030];
+    const JP_JB4           = [728, 1030];
+    const JP_JB5           = [728, 1030];
+    const JP_JB6           = [728, 1030];
+    const JP_JB7           = [728, 1030];
+    const JP_JB8           = [728, 1030];
+    const JP_JB9           = [728, 1030];
+    const JP_JB10          = [728, 1030];
+    const JP_JB11          = [728, 1030];
+    const JP_JB12          = [728, 1030];
+    const JP_SHIROKU_BAN_4 = [128, 182];
+    const JP_SHIROKU_BAN_5 = [189, 262];
+    const JP_SHIROKU_BAN_6 = [127, 188];
+    const JP_KIKU_4        = [227, 306];
+    const JP_KIKU_5        = [151, 227];
 
     // unit
     /**
@@ -93,7 +145,7 @@ class PaperSize
                 $format = [$format[0] * 0.0393701, $format[1] * 0.0393701];
                 break;
         }
-        return [((float)intval($format[0]*100)/100), ((float)intval($format[1]*100)/100)];
+        return [((float) intval($format[0] * 100) / 100), ((float) intval($format[1] * 100) / 100)];
     }
 
     /**
@@ -149,7 +201,7 @@ class PaperSize
      */
     public static function landscape(array $format): array
     {
-        return [$format[1], $format[0]];
+        return array_reverse($format);
     }
 
     /**
@@ -181,16 +233,25 @@ class PaperSize
         return $formats;
     }
 
+    public static function format($x, $y, $resolution = 300, $precision = 2): array | false
+    {
+        foreach (self::allFormats() as $title => $format) {
+            $format = self::px($format, $resolution);
+            if (($format[0] > $x && $format[0] <= ($x + $precision) && $format[1] > $y && $format[1] <= ($y + $precision))
+                || ($format[1] > $x && $format[1] <= ($x + $precision) && $format[0] > $y && $format[0] <= ($y + $precision))) {
+                return $title;
+            }
+        }
+    }
+
     /**
      * Creates a GD image with the specified paper format.
      *
      * @param array $format The paper format.
      * @return \GdImage|false The created GD image or false on failure.
      */
-    public static function gdImage(array $format): \GdImage  | false
+    public static function gdImage(array $format, bool $landscape = false): \GdImage  | false
     {
-        $format = self::px($format);
-        return imagecreate($format[0], $format[1]);
+        $format = self::px(($landscape) ? array_reverse($format) : $format);
+        return imagecreate(...$format);
     }
-
-} 
