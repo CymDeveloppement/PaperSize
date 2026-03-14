@@ -140,7 +140,20 @@ use Ycdev\PaperSize;
 
 // Get all available formats
 $formats = PaperSize::allFormats();
+// Returns an associative array:
+// [
+//     'A4' => ['width' => 210, 'height' => 297, 'name' => 'A4'],
+//     'FR_RAISIN' => ['width' => 500, 'height' => 650, 'name' => 'Fr raisin'],
+//     ...
+// ]
+
+// Example: populate a <select>
+foreach (PaperSize::allFormats() as $key => $format) {
+    echo "<option value=\"$key\">{$format['name']} ({$format['width']}x{$format['height']}mm)</option>";
+}
 ```
+
+> **Breaking change** : `allFormats()` retourne désormais un tableau associatif avec les clés `width`, `height` et `name` au lieu d'un tableau indexé `[width, height, name]`.
 
 ## Supported Units
 

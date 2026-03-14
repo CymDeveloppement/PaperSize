@@ -12,7 +12,6 @@ namespace Ycdev;
  */
 class PaperSize
 {
-    const no = false;
     // ISO 216 FORMAT (mm)
     const A0  = [841, 1189];
     const A1  = [594, 841];
@@ -76,13 +75,13 @@ class PaperSize
     const FR_UNIVERS              = [1000, 1300];
 
     // US FORMAT
-    const US_JUNIOR_LEGAL      = [127, 203];
-    const US_HALF_LETTER       = [127, 203];
-    const US_QUARTO            = [127, 203];
-    const US_FOOLSCAP_FOLIO    = [127, 203];
-    const US_EXECUTIVE         = [127, 203];
-    const US_GOVERNMENT_LETTER = [127, 203];
-    const US_LETTER            = [127, 203];
+    const US_JUNIOR_LEGAL      = [140, 216];
+    const US_HALF_LETTER       = [140, 216];
+    const US_QUARTO            = [229, 279];
+    const US_FOOLSCAP_FOLIO    = [216, 330];
+    const US_EXECUTIVE         = [184, 267];
+    const US_GOVERNMENT_LETTER = [203, 267];
+    const US_LETTER            = [216, 279];
 
     //ISO/CEI 7810
     const ID_000 = [15, 25];
@@ -95,23 +94,27 @@ class PaperSize
     const JP_JB0           = [1030, 1456];
     const JP_JB1           = [728, 1030];
     const JP_JB2           = [515, 728];
-    const JP_JB3           = [728, 1030];
-    const JP_JB4           = [728, 1030];
-    const JP_JB5           = [728, 1030];
-    const JP_JB6           = [728, 1030];
-    const JP_JB7           = [728, 1030];
-    const JP_JB8           = [728, 1030];
-    const JP_JB9           = [728, 1030];
-    const JP_JB10          = [728, 1030];
-    const JP_JB11          = [728, 1030];
-    const JP_JB12          = [728, 1030];
+    const JP_JB3           = [364, 515];
+    const JP_JB4           = [257, 364];
+    const JP_JB5           = [182, 257];
+    const JP_JB6           = [128, 182];
+    const JP_JB7           = [91, 128];
+    const JP_JB8           = [64, 91];
+    const JP_JB9           = [45, 64];
+    const JP_JB10          = [32, 45];
+    const JP_JB11          = [22, 32];
+    const JP_JB12          = [16, 22];
     const JP_SHIROKU_BAN_4 = [128, 182];
     const JP_SHIROKU_BAN_5 = [189, 262];
     const JP_SHIROKU_BAN_6 = [127, 188];
     const JP_KIKU_4        = [227, 306];
     const JP_KIKU_5        = [151, 227];
 
-    // unit
+    public static function getUserConstant(String $name, $defaultValue = null)
+    {
+        return (defined("PAPERSIZE_$name")) ? constant("PAPERSIZE_$name") : $defaultValue;
+    }
+
     /**
      * Returns the list of supported units.
      *
@@ -133,6 +136,8 @@ class PaperSize
      */
     public static function convert(array $format, string $unit = 'px', int $resolution = 300, string $orientation = 'P'): array
     {
+        $resolution = self::getUserConstant("resolution", $resolution);
+
         switch ($unit) {
             case 'px':
                 $mm_resolution = ($resolution / 25.4);
@@ -141,10 +146,18 @@ class PaperSize
             case 'cm':
                 $format = [$format[0] * 0.1, $format[1] * 0.1];
                 break;
+            case 'm':
+                $format = [$format[0] * 0.001, $format[1] * 0.001];
+                break;
             case 'in':
                 $format = [$format[0] * 0.0393701, $format[1] * 0.0393701];
                 break;
         }
+
+        if ($orientation !== 'P') {
+            $format = array_reverse($format);
+        }
+
         return [((float) intval($format[0] * 100) / 100), ((float) intval($format[1] * 100) / 100)];
     }
 
@@ -157,6 +170,8 @@ class PaperSize
      */
     public static function px(array $format, int $resolution = 300): array
     {
+        $resolution = self::getUserConstant("resolution", $resolution);
+
         return self::convert($format, 'px', $resolution);
     }
 
@@ -227,21 +242,29 @@ class PaperSize
         }
 
         foreach ($formats as $key => $value) {
-            $formats[$key][] = trim(ucfirst(strtolower(str_replace('PAPERSIZE', '', str_replace('_', ' ', $key)))));
+            $formats[$key] = [
+                'width'  => $value[0],
+                'height' => $value[1],
+                'name'   => trim(ucfirst(strtolower(str_replace('PAPERSIZE', '', str_replace('_', ' ', $key)))))
+            ];
         }
 
         return $formats;
     }
 
-    public static function format($x, $y, $resolution = 300, $precision = 2): array | false
+    public static function format(int $x, int $y, int $precision = 2, int $resolution = 300): string | false
     {
+        $resolution = self::getUserConstant("resolution", $resolution);
+
         foreach (self::allFormats() as $title => $format) {
-            $format = self::px($format, $resolution);
-            if (($format[0] > $x && $format[0] <= ($x + $precision) && $format[1] > $y && $format[1] <= ($y + $precision))
-                || ($format[1] > $x && $format[1] <= ($x + $precision) && $format[0] > $y && $format[0] <= ($y + $precision))) {
+            $px = self::px([$format['width'], $format['height']], $resolution);
+            if ((abs($px[0] - $x) <= $precision && abs($px[1] - $y) <= $precision)
+                || (abs($px[1] - $x) <= $precision && abs($px[0] - $y) <= $precision)) {
                 return $title;
             }
         }
+
+        return false;
     }
 
     /**
@@ -255,3 +278,20 @@ class PaperSize
         $format = self::px(($landscape) ? array_reverse($format) : $format);
         return imagecreate(...$format);
     }
+
+    public static function fold(\GDImage $image, int $nb, bool $horizontal = false, int $resolution = 300)
+    {
+        $resolution = self::getUserConstant("resolution", $resolution);
+    }
+
+    public static function bleed(\GDImage $image, float $bleed = 2.0, float $margin = 4.0, int $resolution = 300)
+    {
+        $resolution = self::getUserConstant("resolution", $resolution);
+    }
+
+    public static function crop(\GDImage $image, array $format, int $mode = 0, int $resolution = 300): \GdImage
+    {
+        $format = self::px($format, $resolution);
+        return imagecrop($image, ['x' => 0, 'y' => 0, 'width' => $format[0], 'height' => $format[1]]);
+    }
+}

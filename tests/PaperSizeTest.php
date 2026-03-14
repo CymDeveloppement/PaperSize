@@ -82,12 +82,96 @@ class PaperSizeTest extends TestCase
     public function testAllFormats()
     {
         $formats = PaperSize::allFormats();
-        
+
         // Test if A4 exists in formats
         $this->assertArrayHasKey('A4', $formats);
-        
+
         // Test if format contains dimensions and name
-        $this->assertCount(3, $formats['A4']);
-        $this->assertEquals([210, 297], array_slice($formats['A4'], 0, 2));
+        $this->assertArrayHasKey('width', $formats['A4']);
+        $this->assertArrayHasKey('height', $formats['A4']);
+        $this->assertArrayHasKey('name', $formats['A4']);
+        $this->assertEquals(210, $formats['A4']['width']);
+        $this->assertEquals(297, $formats['A4']['height']);
+        $this->assertEquals('A4', $formats['A4']['name']);
     }
-} 
+
+    /**
+     * Test format detection with exact pixel dimensions
+     */
+    public function testFormatExactMatch()
+    {
+        $a4px = PaperSize::px(PaperSize::A4);
+        $this->assertEquals('A4', PaperSize::format($a4px[0], $a4px[1]));
+    }
+
+    /**
+     * Test format detection with precision tolerance
+     */
+    public function testFormatWithPrecision()
+    {
+        $a4px = PaperSize::px(PaperSize::A4);
+        $this->assertEquals('A4', PaperSize::format($a4px[0] + 1, $a4px[1] - 1));
+        $this->assertEquals('A4', PaperSize::format($a4px[0] - 2, $a4px[1] + 2));
+    }
+
+    /**
+     * Test format detection in landscape orientation
+     */
+    public function testFormatLandscape()
+    {
+        $a4px = PaperSize::px(PaperSize::A4);
+        $this->assertEquals('A4', PaperSize::format($a4px[1], $a4px[0]));
+    }
+
+    /**
+     * Test format returns false when no match
+     */
+    public function testFormatNoMatch()
+    {
+        $this->assertFalse(PaperSize::format(1, 1));
+        $this->assertFalse(PaperSize::format(9999, 9999));
+    }
+
+    /**
+     * Test format detection with custom resolution
+     */
+    public function testFormatCustomResolution()
+    {
+        $a4px = PaperSize::px(PaperSize::A4, 600);
+        $this->assertEquals('A4', PaperSize::format($a4px[0], $a4px[1], 2, 600));
+    }
+
+    /**
+     * Test crop returns a valid GD image
+     */
+    public function testCrop()
+    {
+        $image = PaperSize::gdImage(PaperSize::A4);
+        $cropped = PaperSize::crop($image, PaperSize::A5);
+        $a5px = PaperSize::px(PaperSize::A5);
+        $this->assertInstanceOf(\GdImage::class, $cropped);
+        $this->assertEquals($a5px[0], imagesx($cropped));
+        $this->assertEquals($a5px[1], imagesy($cropped));
+    }
+
+    /**
+     * Test convert with landscape orientation
+     */
+    public function testConvertLandscape()
+    {
+        $portrait = PaperSize::convert(PaperSize::A4, 'mm');
+        $landscape = PaperSize::convert(PaperSize::A4, 'mm', 300, 'L');
+        $this->assertEquals($portrait[0], $landscape[1]);
+        $this->assertEquals($portrait[1], $landscape[0]);
+    }
+
+    /**
+     * Test convert to meters
+     */
+    public function testConvertMeters()
+    {
+        $result = PaperSize::convert(PaperSize::A4, 'm');
+        $this->assertEquals(0.21, $result[0]);
+        $this->assertEquals(0.29, $result[1]);
+    }
+}
