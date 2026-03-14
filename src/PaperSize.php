@@ -110,6 +110,13 @@ class PaperSize
     const JP_KIKU_4        = [227, 306];
     const JP_KIKU_5        = [151, 227];
 
+    /**
+     * Retrieves a user-defined constant prefixed with PAPERSIZE_.
+     *
+     * @param string $name The constant name (without the PAPERSIZE_ prefix).
+     * @param mixed $defaultValue The default value if the constant is not defined.
+     * @return mixed The constant value or the default value.
+     */
     public static function getUserConstant(String $name, $defaultValue = null)
     {
         return (defined("PAPERSIZE_$name")) ? constant("PAPERSIZE_$name") : $defaultValue;
@@ -252,6 +259,15 @@ class PaperSize
         return $formats;
     }
 
+    /**
+     * Detects the paper format name from pixel dimensions.
+     *
+     * @param int $x The width in pixels.
+     * @param int $y The height in pixels.
+     * @param int $precision The tolerance in pixels for matching.
+     * @param int $resolution The resolution in DPI.
+     * @return string|false The format name or false if no match.
+     */
     public static function format(int $x, int $y, int $precision = 2, int $resolution = 300): string | false
     {
         $resolution = self::getUserConstant("resolution", $resolution);
@@ -271,6 +287,7 @@ class PaperSize
      * Creates a GD image with the specified paper format.
      *
      * @param array $format The paper format.
+     * @param bool $landscape Whether to create the image in landscape orientation.
      * @return \GdImage|false The created GD image or false on failure.
      */
     public static function gdImage(array $format, bool $landscape = false): \GdImage  | false
@@ -279,16 +296,15 @@ class PaperSize
         return imagecreate(...$format);
     }
 
-    public static function fold(\GDImage $image, int $nb, bool $horizontal = false, int $resolution = 300)
-    {
-        $resolution = self::getUserConstant("resolution", $resolution);
-    }
-
-    public static function bleed(\GDImage $image, float $bleed = 2.0, float $margin = 4.0, int $resolution = 300)
-    {
-        $resolution = self::getUserConstant("resolution", $resolution);
-    }
-
+    /**
+     * Crops a GD image to the specified paper format.
+     *
+     * @param \GDImage $image The source GD image.
+     * @param array $format The target paper format.
+     * @param int $mode The crop mode.
+     * @param int $resolution The resolution in DPI.
+     * @return \GdImage The cropped GD image.
+     */
     public static function crop(\GDImage $image, array $format, int $mode = 0, int $resolution = 300): \GdImage
     {
         $format = self::px($format, $resolution);
