@@ -1,5 +1,5 @@
 <?php
-namespace Ycdev;
+namespace Ycdev\PaperSize;
 
 /**
  * PaperSize Class
